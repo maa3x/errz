@@ -1,0 +1,91 @@
+package errz
+
+import (
+	"fmt"
+	"strings"
+)
+
+var DefaultFactory = Factory().StackTrace(true)
+
+func F(format string, args ...any) *Error {
+	return DefaultFactory.F(format, args...)
+}
+
+func E(in ...any) *Error {
+	return DefaultFactory.E(in...)
+}
+
+type factory struct {
+	stacktrace bool
+	location   bool
+	timestamp  bool
+	OnError    func(*Error)
+}
+
+func Factory() *factory {
+	return &factory{}
+}
+
+func (f *factory) StackTrace(v bool) *factory {
+	f.stacktrace = v
+	return f
+}
+
+func (f *factory) Location(v bool) *factory {
+	f.location = v
+	return f
+}
+
+func (f *factory) Timestamp(v bool) *factory {
+	f.timestamp = v
+	return f
+}
+
+func (f *factory) E(in ...any) *Error {
+	err := &Error{}
+	for i := range in {
+		if in[i] == nil {
+			continue
+		}
+
+		switch v := in[i].(type) {
+		case code:
+			err.code = v
+		case Error:
+			if !v.IsEmpty() {
+				err.errs = append(err.errs, &v)
+			}
+		case *Error:
+			if v != nil && !v.IsEmpty() {
+				err.errs = append(err.errs, v)
+			}
+		case error:
+			if v != nil {
+				err.errs = append(err.errs, v)
+			}
+		case string:
+			err.msg = strings.TrimSpace(v)
+		default:
+			err.meta = append(err.meta, detail{Value: v})
+		}
+	}
+
+	if err.IsEmpty() {
+		return nil
+	}
+
+	if f.stacktrace {
+		err.WithTrace()
+	}
+	if f.location {
+		err.WithLocation()
+	}
+	if f.timestamp {
+		err.WithTime()
+	}
+	return err
+}
+
+func (f *factory) F(format string, args ...any) *Error {
+	return E(fmt.Errorf(format, args...))
+}
