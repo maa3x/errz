@@ -161,6 +161,22 @@ func (e *Error) Wrap(err error) *Error {
 	return e
 }
 
+func (e *Error) Is(err error) bool {
+	if e == nil {
+		return false
+	}
+
+	return Is(e, err)
+}
+
+func (e *Error) As(err error) bool {
+	if e == nil {
+		return false
+	}
+
+	return As(e, err)
+}
+
 func (e *Error) IsEmpty() bool {
 	return e == nil || (len(e.errs) == 0 && e.code == 0 && e.msg == "" && len(e.meta) == 0)
 }
