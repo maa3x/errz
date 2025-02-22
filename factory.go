@@ -49,7 +49,7 @@ func (f *factory) E(in ...any) *Error {
 		}
 
 		switch v := in[i].(type) {
-		case code:
+		case Code:
 			err.code = v
 		case Error:
 			if !v.IsEmpty() {
@@ -65,8 +65,14 @@ func (f *factory) E(in ...any) *Error {
 			}
 		case string:
 			err.msg = strings.TrimSpace(v)
+		case fmt.Stringer:
+			if v != nil {
+				err.msg = strings.TrimSpace(v.String())
+			}
 		default:
-			err.meta = append(err.meta, detail{Value: v})
+			if v != nil {
+				err.meta = append(err.meta, detail{Value: v})
+			}
 		}
 	}
 
@@ -75,7 +81,7 @@ func (f *factory) E(in ...any) *Error {
 	}
 
 	if f.stacktrace {
-		err.WithTrace()
+		err.WithTrace(1)
 	}
 	if f.location {
 		err.WithLocation()

@@ -7,163 +7,163 @@ import (
 	"strings"
 )
 
-type code int
+type Code int
 
 const (
-	// canceled indicates that the operation was canceled, typically by the caller.
-	canceled code = 1
+	// Canceled indicates that the operation was Canceled, typically by the caller.
+	Canceled Code = 1
 
-	// unknown indicates that the operation failed for an unknown reason.
-	unknown code = 2
+	// Unknown indicates that the operation failed for an Unknown reason.
+	Unknown Code = 2
 
-	// invalidArgument indicates that client supplied an invalid argument.
-	invalidArgument code = 3
+	// InvalidArgument indicates that client supplied an invalid argument.
+	InvalidArgument Code = 3
 
-	// deadlineExceeded indicates that deadline expired before the operation could complete.
-	deadlineExceeded code = 4
+	// DeadlineExceeded indicates that deadline expired before the operation could complete.
+	DeadlineExceeded Code = 4
 
-	// notFound indicates that some requested entity (for example, a file or directory) was not found.
-	notFound code = 5
+	// NotFound indicates that some requested entity (for example, a file or directory) was not found.
+	NotFound Code = 5
 
-	// alreadyExists indicates that client attempted to create an entity (for example, a file or directory) that already exists.
-	alreadyExists code = 6
+	// AlreadyExists indicates that client attempted to create an entity (for example, a file or directory) that already exists.
+	AlreadyExists Code = 6
 
-	// permissionDenied indicates that the caller doesn't have permission to execute the specified operation.
-	permissionDenied code = 7
+	// PermissionDenied indicates that the caller doesn't have permission to execute the specified operation.
+	PermissionDenied Code = 7
 
-	// resourceExhausted indicates that some resource has been exhausted.
+	// ResourceExhausted indicates that some resource has been exhausted.
 	// For example, a per-user quota may be exhausted or the entire file system may be full.
-	resourceExhausted code = 8
+	ResourceExhausted Code = 8
 
-	// failedPrecondition indicates that the system is not in a state required for the operation's execution.
-	failedPrecondition code = 9
+	// FailedPrecondition indicates that the system is not in a state required for the operation's execution.
+	FailedPrecondition Code = 9
 
-	// aborted indicates that operation was aborted by the system,
+	// Aborted indicates that operation was Aborted by the system,
 	// usually because of a concurrency issue such as a sequencer check failure or transaction abort.
-	aborted code = 10
+	Aborted Code = 10
 
-	// outOfRange indicates that the operation was attempted past the valid range (for example, seeking past end-of-file).
-	outOfRange code = 11
+	// OutOfRange indicates that the operation was attempted past the valid range (for example, seeking past end-of-file).
+	OutOfRange Code = 11
 
-	// unimplemented indicates that the operation isn't implemented, supported, or enabled in this service.
-	unimplemented code = 12
+	// Unimplemented indicates that the operation isn't implemented, supported, or enabled in this service.
+	Unimplemented Code = 12
 
-	// internal indicates that some invariants expected by the underlying system have been broken.
+	// Internal indicates that some invariants expected by the underlying system have been broken.
 	// This code is reserved for serious errors.
-	internal code = 13
+	Internal Code = 13
 
-	// unavailable indicates that the service is currently unavailable.
+	// Unavailable indicates that the service is currently Unavailable.
 	// This is usually temporary, so clients can back off and retry idempotent operations.
-	unavailable code = 14
+	Unavailable Code = 14
 
-	// dataLoss indicates that the operation has resulted in unrecoverable data loss or corruption.
-	dataLoss code = 15
+	// DataLoss indicates that the operation has resulted in unrecoverable data loss or corruption.
+	DataLoss Code = 15
 
-	// unauthenticated indicates that the request does not have valid authentication credentials for the operation.
-	unauthenticated code = 16
+	// Unauthenticated indicates that the request does not have valid authentication credentials for the operation.
+	Unauthenticated Code = 16
 
-	minCode = canceled
-	maxCode = unauthenticated
+	minCode = Canceled
+	maxCode = Unauthenticated
 )
 
-func (c *code) String() string {
+func (c *Code) String() string {
 	if c == nil {
 		return ""
 	}
 
 	switch *c {
-	case canceled:
+	case Canceled:
 		return "canceled"
-	case unknown:
+	case Unknown:
 		return "unknown"
-	case invalidArgument:
+	case InvalidArgument:
 		return "invalid_argument"
-	case deadlineExceeded:
+	case DeadlineExceeded:
 		return "deadline_exceeded"
-	case notFound:
+	case NotFound:
 		return "not_found"
-	case alreadyExists:
+	case AlreadyExists:
 		return "already_exists"
-	case permissionDenied:
+	case PermissionDenied:
 		return "permission_denied"
-	case resourceExhausted:
+	case ResourceExhausted:
 		return "resource_exhausted"
-	case failedPrecondition:
+	case FailedPrecondition:
 		return "failed_precondition"
-	case aborted:
+	case Aborted:
 		return "aborted"
-	case outOfRange:
+	case OutOfRange:
 		return "out_of_range"
-	case unimplemented:
+	case Unimplemented:
 		return "unimplemented"
-	case internal:
+	case Internal:
 		return "internal"
-	case unavailable:
+	case Unavailable:
 		return "unavailable"
-	case dataLoss:
+	case DataLoss:
 		return "data_loss"
-	case unauthenticated:
+	case Unauthenticated:
 		return "unauthenticated"
 	}
 	return fmt.Sprintf("code_%d", c)
 }
 
 // MarshalText implements [encoding.TextMarshaler].
-func (c *code) MarshalText() ([]byte, error) {
+func (c *Code) MarshalText() ([]byte, error) {
 	return []byte(c.String()), nil
 }
 
 // UnmarshalText implements [encoding.TextUnmarshaler].
-func (c *code) UnmarshalText(data []byte) error {
+func (c *Code) UnmarshalText(data []byte) error {
 	dataStr := string(data)
 	switch dataStr {
 	case "canceled":
-		*c = canceled
+		*c = Canceled
 		return nil
 	case "unknown":
-		*c = unknown
+		*c = Unknown
 		return nil
 	case "invalid_argument":
-		*c = invalidArgument
+		*c = InvalidArgument
 		return nil
 	case "deadline_exceeded":
-		*c = deadlineExceeded
+		*c = DeadlineExceeded
 		return nil
 	case "not_found":
-		*c = notFound
+		*c = NotFound
 		return nil
 	case "already_exists":
-		*c = alreadyExists
+		*c = AlreadyExists
 		return nil
 	case "permission_denied":
-		*c = permissionDenied
+		*c = PermissionDenied
 		return nil
 	case "resource_exhausted":
-		*c = resourceExhausted
+		*c = ResourceExhausted
 		return nil
 	case "failed_precondition":
-		*c = failedPrecondition
+		*c = FailedPrecondition
 		return nil
 	case "aborted":
-		*c = aborted
+		*c = Aborted
 		return nil
 	case "out_of_range":
-		*c = outOfRange
+		*c = OutOfRange
 		return nil
 	case "unimplemented":
-		*c = unimplemented
+		*c = Unimplemented
 		return nil
 	case "internal":
-		*c = internal
+		*c = Internal
 		return nil
 	case "unavailable":
-		*c = unavailable
+		*c = Unavailable
 		return nil
 	case "data_loss":
-		*c = dataLoss
+		*c = DataLoss
 		return nil
 	case "unauthenticated":
-		*c = unauthenticated
+		*c = Unauthenticated
 		return nil
 	}
 	// Ensure that non-canonical codes round-trip through MarshalText and UnmarshalText.
@@ -171,7 +171,7 @@ func (c *code) UnmarshalText(data []byte) error {
 		dataStr = strings.TrimPrefix(dataStr, "code_")
 		_code, err := strconv.ParseInt(dataStr, 10 /* base */, 64 /* bitsize */)
 		if err == nil && (_code < int64(minCode) || _code > int64(maxCode)) {
-			*c = code(_code)
+			*c = Code(_code)
 			return nil
 		}
 	}
@@ -179,11 +179,11 @@ func (c *code) UnmarshalText(data []byte) error {
 }
 
 // CodeOf returns the error's status code if it is or wraps an [*Error] and [unknown] otherwise.
-func CodeOf(err error) code {
+func CodeOf(err error) Code {
 	var e *Error
 	ok := errors.As(err, &e)
 	if ok {
 		return e.code
 	}
-	return unknown
+	return Unknown
 }

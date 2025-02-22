@@ -9,20 +9,9 @@ import (
 	"time"
 )
 
-type location struct {
-	File string
-	Func string
-	Line int
-}
-
-type detail struct {
-	Key   string
-	Value any
-}
-
 type Error struct {
 	errs  []error
-	code  code
+	code  Code
 	msg   string
 	loc   *location
 	ts    *time.Time
@@ -51,13 +40,13 @@ func (e *Error) WithLocation() *Error {
 	return e
 }
 
-func (e *Error) WithTrace() *Error {
+func (e *Error) WithTrace(skip int) *Error {
 	if e == nil {
 		return nil
 	}
 
 	pcs := make([]uintptr, 32)
-	frames := runtime.CallersFrames(pcs[:runtime.Callers(3, pcs)])
+	frames := runtime.CallersFrames(pcs[:runtime.Callers(3+skip, pcs)])
 	e.stack = make([]runtime.Frame, 0, 8)
 	for {
 		frame, more := frames.Next()
@@ -96,7 +85,7 @@ func (e *Error) String() string {
 		b.WriteString(e.msg + ": ")
 	}
 	if e.loc != nil {
-		b.WriteString(fmt.Sprintf("\n   %s   %s:%d\n", e.loc.Func, e.loc.File, e.loc.Line))
+		b.WriteString(fmt.Sprintf("\n   %s\n", e.loc.String()))
 	}
 
 	if len(e.meta) > 0 {
@@ -104,7 +93,7 @@ func (e *Error) String() string {
 		buf := new(bytes.Buffer)
 		w := tabwriter.NewWriter(buf, 0, 0, 3, ' ', 0)
 		for i := range e.meta {
-			fmt.Fprintf(w, "\t%s\t%v\n", e.meta[i].Key, e.meta[i].Value)
+			fmt.Fprintf(w, "\t%s\n", e.meta[i].String())
 		}
 		w.Flush()
 		b.Write(buf.Bytes())
@@ -124,7 +113,11 @@ func (e *Error) String() string {
 		b.WriteRune('\n')
 		errs := make([]string, len(e.errs))
 		for i := range e.errs {
-			errs[i] = strings.TrimSpace(fmt.Sprint(e.errs[i]))
+			lines := strings.Split(fmt.Sprint(e.errs[i]), "\n")
+			for j := range lines {
+				lines[j] = "   " + lines[j]
+			}
+			errs[i] = strings.Join(lines, "\n")
 		}
 		b.WriteString(strings.Join(errs, "\n"))
 		b.WriteRune('\n')
@@ -161,12 +154,12 @@ func (e *Error) Wrap(err error) *Error {
 	return e
 }
 
-func (e *Error) Is(err error) bool {
+func (e *Error) Is(targets ...error) bool {
 	if e == nil {
 		return false
 	}
 
-	return Is(e, err)
+	return Is(e, targets...)
 }
 
 func (e *Error) As(err error) bool {
@@ -179,4 +172,52 @@ func (e *Error) As(err error) bool {
 
 func (e *Error) IsEmpty() bool {
 	return e == nil || (len(e.errs) == 0 && e.code == 0 && e.msg == "" && len(e.meta) == 0)
+}
+
+func (e *Error) Code() Code {
+	if e == nil {
+		return 0
+	}
+
+	return e.code
+}
+
+func (e *Error) Message() string {
+	if e == nil {
+		return ""
+	}
+
+	return e.msg
+}
+
+func (e *Error) Location() *location {
+	if e == nil {
+		return nil
+	}
+
+	return e.loc
+}
+
+func (e *Error) StackTrace() []runtime.Frame {
+	if e == nil {
+		return nil
+	}
+
+	return e.stack
+}
+
+func (e *Error) Timestamp() *time.Time {
+	if e == nil {
+		return nil
+	}
+
+	return e.ts
+}
+
+func (e *Error) Meta() []detail {
+	if e == nil {
+		return nil
+	}
+
+	return e.meta
 }

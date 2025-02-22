@@ -3,22 +3,22 @@ package errz
 import "errors"
 
 var (
-	ErrCanceled           = E(canceled)
-	ErrUnknown            = E(unknown)
-	ErrInvalidArgument    = E(invalidArgument)
-	ErrDeadlineExceeded   = E(deadlineExceeded)
-	ErrNotFound           = E(notFound)
-	ErrAlreadyExists      = E(alreadyExists)
-	ErrPermissionDenied   = E(permissionDenied)
-	ErrResourceExhausted  = E(resourceExhausted)
-	ErrFailedPrecondition = E(failedPrecondition)
-	ErrAborted            = E(aborted)
-	ErrOutOfRange         = E(outOfRange)
-	ErrUnimplemented      = E(unimplemented)
-	ErrInternal           = E(internal)
-	ErrUnavailable        = E(unavailable)
-	ErrDataLoss           = E(dataLoss)
-	ErrUnauthenticated    = E(unauthenticated)
+	ErrCanceled           = E(Canceled)
+	ErrUnknown            = E(Unknown)
+	ErrInvalidArgument    = E(InvalidArgument)
+	ErrDeadlineExceeded   = E(DeadlineExceeded)
+	ErrNotFound           = E(NotFound)
+	ErrAlreadyExists      = E(AlreadyExists)
+	ErrPermissionDenied   = E(PermissionDenied)
+	ErrResourceExhausted  = E(ResourceExhausted)
+	ErrFailedPrecondition = E(FailedPrecondition)
+	ErrAborted            = E(Aborted)
+	ErrOutOfRange         = E(OutOfRange)
+	ErrUnimplemented      = E(Unimplemented)
+	ErrInternal           = E(Internal)
+	ErrUnavailable        = E(Unavailable)
+	ErrDataLoss           = E(DataLoss)
+	ErrUnauthenticated    = E(Unauthenticated)
 )
 
 func Unwrap(err error) error {
@@ -54,8 +54,8 @@ func NotAs(err error, target any) bool {
 }
 
 func Is(err error, targets ...error) bool {
-	for _, target := range targets {
-		if errors.Is(err, target) {
+	for i := range targets {
+		if errors.Is(err, targets[i]) {
 			return true
 		}
 	}
