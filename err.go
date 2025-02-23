@@ -16,7 +16,7 @@ type Error struct {
 	loc   *location
 	ts    *time.Time
 	stack []runtime.Frame
-	meta  []detail
+	meta  Metadata
 }
 
 func (e *Error) With(key string, value any) *Error {
@@ -24,7 +24,7 @@ func (e *Error) With(key string, value any) *Error {
 		return nil
 	}
 
-	e.meta = append(e.meta, detail{Key: key, Value: value})
+	e.meta.Add(key, value)
 	return e
 }
 
@@ -89,14 +89,7 @@ func (e *Error) String() string {
 	}
 
 	if len(e.meta) > 0 {
-		b.WriteRune('\n')
-		buf := new(bytes.Buffer)
-		w := tabwriter.NewWriter(buf, 0, 0, 3, ' ', 0)
-		for i := range e.meta {
-			fmt.Fprintf(w, "\t%s\n", e.meta[i].String())
-		}
-		w.Flush()
-		b.Write(buf.Bytes())
+		b.WriteString("\n" + e.meta.String())
 	}
 	if len(e.stack) > 0 {
 		buf := new(bytes.Buffer)
@@ -214,7 +207,7 @@ func (e *Error) Timestamp() *time.Time {
 	return e.ts
 }
 
-func (e *Error) Meta() []detail {
+func (e *Error) Meta() Metadata {
 	if e == nil {
 		return nil
 	}
