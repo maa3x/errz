@@ -15,6 +15,14 @@ func E(in ...any) *Error {
 	return DefaultFactory.E(in...)
 }
 
+func If(err error, in ...any) *Error {
+	if err == nil {
+		return nil
+	}
+
+	return E(in...)
+}
+
 type factory struct {
 	stacktrace bool
 	location   bool
