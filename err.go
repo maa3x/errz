@@ -1,12 +1,15 @@
 package errz
 
 import (
-	"bytes"
 	"fmt"
 	"runtime"
 	"strings"
-	"text/tabwriter"
 	"time"
+)
+
+const (
+	indent = "  "
+	sep    = "\n"
 )
 
 type Error struct {
@@ -15,7 +18,7 @@ type Error struct {
 	msg   string
 	loc   *location
 	ts    *time.Time
-	stack []runtime.Frame
+	stack stackframes
 	meta  Metadata
 }
 
@@ -24,7 +27,7 @@ func (e *Error) With(key string, value any) *Error {
 		return nil
 	}
 
-	e.meta.Add(key, value)
+	e.meta = e.meta.Add(key, value)
 	return e
 }
 
@@ -34,7 +37,7 @@ func (e *Error) WithLocation() *Error {
 	}
 
 	var pcs [4]uintptr
-	frames := runtime.CallersFrames(pcs[:runtime.Callers(3, pcs[:])])
+	frames := runtime.CallersFrames(pcs[:runtime.Callers(2, pcs[:])])
 	frame, _ := frames.Next()
 	e.loc = &location{File: frame.File, Func: frame.Function, Line: frame.Line}
 	return e
@@ -85,35 +88,21 @@ func (e *Error) String() string {
 		b.WriteString(e.msg + ": ")
 	}
 	if e.loc != nil {
-		b.WriteString(fmt.Sprintf("\n   %s\n", e.loc.String()))
+		b.WriteString(e.loc.String())
 	}
-
 	if len(e.meta) > 0 {
-		b.WriteString("\n" + e.meta.String())
+		b.WriteString(e.meta.String())
 	}
 	if len(e.stack) > 0 {
-		buf := new(bytes.Buffer)
-		w := tabwriter.NewWriter(buf, 0, 0, 3, ' ', 0)
-		for i := range e.stack {
-			fmt.Fprintf(w, "\t%s\t%s:%d\n", e.stack[i].Function, e.stack[i].File, e.stack[i].Line)
-		}
-		w.Flush()
-		b.WriteRune('\n')
-		b.Write(buf.Bytes())
+		b.WriteString(e.stack.String())
 	}
 
 	if len(e.errs) > 0 {
-		b.WriteRune('\n')
 		errs := make([]string, len(e.errs))
 		for i := range e.errs {
-			lines := strings.Split(fmt.Sprint(e.errs[i]), "\n")
-			for j := range lines {
-				lines[j] = "   " + lines[j]
-			}
-			errs[i] = strings.Join(lines, "\n")
+			errs[i] = "(" + e.errs[i].Error() + ")"
 		}
-		b.WriteString(strings.Join(errs, "\n"))
-		b.WriteRune('\n')
+		b.WriteString(strings.Join(errs, " "))
 	}
 	return b.String()
 }

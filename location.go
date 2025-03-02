@@ -1,6 +1,8 @@
 package errz
 
-import "fmt"
+import (
+	"strconv"
+)
 
 type location struct {
 	File string
@@ -13,5 +15,5 @@ func (l *location) String() string {
 		return ""
 	}
 
-	return fmt.Sprintf("%s   %s:%d\n", l.Func, l.File, l.Line)
+	return "[" + l.Func + " " + l.File + ":" + strconv.Itoa(l.Line) + "] "
 }

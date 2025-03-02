@@ -56,18 +56,18 @@ func TestIs(t *testing.T) {
 
 func TestNested(t *testing.T) {
 	e1 := errors.New("error 1")
-	e2 := E("error 2", e1)
+	e2 := E("error 2", e1).WithLocation()
 	if !Is(e2, e1) {
 		t.Errorf("error 1 should be nested in error 2")
 	}
 
-	e3 := E("error 3", e1, e2)
+	e3 := E("error 3", e1, e2).With("meta", "data").With("second", 2)
 	if !Is(e3, e1) {
 		t.Errorf("error 1 should be nested in error 3")
 	}
 
 	e4 := fmt.Errorf("error 4: %w", e3)
-	e5 := E("error 5", e1, e2, e3, e4)
+	e5 := E("error 5", e1, e2, e3, e4).WithTrace(0)
 	fmt.Println(e5)
 	if !Is(e4, e1) {
 		t.Errorf("error 1 should be nested in error 4")

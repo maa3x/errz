@@ -1,6 +1,18 @@
 package errz
 
-import "errors"
+import (
+	"errors"
+	"os"
+
+	"github.com/mattn/go-isatty"
+)
+
+var tty = false
+
+func init() {
+	fd := os.Stdout.Fd()
+	tty = isatty.IsTerminal(fd) || isatty.IsCygwinTerminal(fd)
+}
 
 var (
 	ErrCanceled           = E(Canceled)
@@ -64,4 +76,11 @@ func Is(err error, targets ...error) bool {
 
 func IsNot(err error, targets ...error) bool {
 	return !Is(err, targets...)
+}
+
+func separator() string {
+	if tty {
+		return "\n"
+	}
+	return " "
 }

@@ -1,9 +1,7 @@
 package errz
 
 import (
-	"bytes"
 	"fmt"
-	"text/tabwriter"
 )
 
 type detail struct {
@@ -12,32 +10,29 @@ type detail struct {
 }
 
 func (d detail) String() string {
-	return d.Key + "\t" + fmt.Sprint(d.Value)
+	return d.Key + ": " + fmt.Sprint(d.Value)
 }
 
 type Metadata []detail
 
 func (m Metadata) Add(key string, value any) Metadata {
-	if m == nil {
-		return nil
-	}
-
 	m = append(m, detail{Key: key, Value: value})
 	return m
 }
 
 func (m Metadata) String() string {
-	if m == nil {
+	if len(m) == 0 {
 		return ""
 	}
 
-	buf := new(bytes.Buffer)
-	w := tabwriter.NewWriter(buf, 0, 0, 3, ' ', 0)
+	s := "{"
 	for i := range m {
-		fmt.Fprintf(w, "\t%s\n", m[i].String())
+		if i > 0 {
+			s += ", "
+		}
+		s += m[i].String()
 	}
-	w.Flush()
-	return buf.String()
+	return s + "} "
 }
 
 func (m Metadata) Get(key string) []any {

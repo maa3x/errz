@@ -5,7 +5,7 @@ import (
 	"strings"
 )
 
-var DefaultFactory = Factory().StackTrace(true)
+var DefaultFactory = Factory()
 
 func F(format string, args ...any) *Error {
 	return DefaultFactory.F(format, args...)
