@@ -20,7 +20,7 @@ func If(err error, in ...any) *Error {
 		return nil
 	}
 
-	return E(in...)
+	return E(append([]any{err}, in...)...)
 }
 
 type factory struct {
