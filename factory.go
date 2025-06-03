@@ -92,7 +92,7 @@ func (f *factory) E(in ...any) *Error {
 		err.WithTrace(1)
 	}
 	if f.location {
-		err.withLocation(3)
+		err.withLocation(4)
 	}
 	if f.timestamp {
 		err.WithTime()

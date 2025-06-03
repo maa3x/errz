@@ -35,7 +35,7 @@ func (e *Error) WithLocation() *Error {
 	if e == nil {
 		return nil
 	}
-	return e.withLocation(3)
+	return e.withLocation(4)
 }
 
 func (e *Error) withLocation(skip int) *Error {
