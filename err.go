@@ -35,9 +35,16 @@ func (e *Error) WithLocation() *Error {
 	if e == nil {
 		return nil
 	}
+	return e.withLocation(3)
+}
+
+func (e *Error) withLocation(skip int) *Error {
+	if e == nil {
+		return nil
+	}
 
 	var pcs [4]uintptr
-	frames := runtime.CallersFrames(pcs[:runtime.Callers(2, pcs[:])])
+	frames := runtime.CallersFrames(pcs[:runtime.Callers(skip, pcs[:])])
 	frame, _ := frames.Next()
 	e.loc = &location{File: frame.File, Func: frame.Function, Line: frame.Line}
 	return e
