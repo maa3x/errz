@@ -84,27 +84,30 @@ func (e *Error) String() string {
 		return ""
 	}
 
-	var b strings.Builder
+	parts := make([]string, 0)
 	if e.ts != nil {
-		b.WriteString(e.ts.Format(time.DateTime) + " ")
+		parts = append(parts, e.ts.Format(time.DateTime))
 	}
 	if e.code != 0 {
-		b.WriteString(fmt.Sprintf("[%d %s]", e.code, e.code.String()))
+		parts = append(parts, fmt.Sprintf("[%d %s]", e.code, e.code.String()))
 	}
 	if e.msg != "" {
-		b.WriteString(e.msg + ": ")
+		parts = append(parts, e.msg)
 	}
 	if e.loc != nil {
-		b.WriteString(e.loc.String())
+		parts = append(parts, e.loc.String())
 	}
 	if len(e.meta) > 0 {
-		b.WriteString(e.meta.String())
+		parts = append(parts, e.meta.String())
 	}
 	if len(e.stack) > 0 {
-		b.WriteString(e.stack.String())
+		parts = append(parts, e.stack.String())
 	}
 
+	var b strings.Builder
+	b.WriteString(strings.Join(parts, " "))
 	if len(e.errs) > 0 {
+		b.WriteString(": ")
 		errs := make([]string, len(e.errs))
 		for i := range e.errs {
 			errs[i] = "(" + e.errs[i].Error() + ")"
