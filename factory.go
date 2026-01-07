@@ -31,7 +31,7 @@ type factory struct {
 }
 
 func Factory() *factory {
-	return &factory{location: true}
+	return &factory{}
 }
 
 func (f *factory) StackTrace(v bool) *factory {

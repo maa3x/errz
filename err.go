@@ -106,7 +106,10 @@ func (e *Error) String() string {
 
 	var b strings.Builder
 	b.WriteString(strings.Join(parts, " "))
-	if len(e.errs) > 0 {
+	if len(e.errs) == 1 {
+		b.WriteString(": ")
+		b.WriteString(e.errs[0].Error())
+	} else if len(e.errs) > 1 {
 		b.WriteString(": ")
 		errs := make([]string, len(e.errs))
 		for i := range e.errs {
