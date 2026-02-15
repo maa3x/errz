@@ -31,6 +31,26 @@ func (e *Error) With(key string, value any) *Error {
 	return e
 }
 
+func (e *Error) WithMany(pairs ...any) *Error {
+	if e == nil {
+		return nil
+	}
+
+	if len(pairs)%2 != 0 {
+		return e.With("errz_internal", "WithMany requires an even number of arguments")
+	}
+
+	for i := 0; i < len(pairs); i += 2 {
+		key, ok := pairs[i].(string)
+		if !ok {
+			return e.With("errz_internal", "WithMany keys must be strings")
+		}
+		e = e.With(key, pairs[i+1])
+	}
+
+	return e
+}
+
 func (e *Error) WithLocation() *Error {
 	if e == nil {
 		return nil
