@@ -1,15 +1,18 @@
 package errz
 
 import (
-	"errors"
 	"fmt"
 	"strconv"
 	"strings"
 )
 
-type Code int
+// Code represents an error code.
+type Code uint32
 
 const (
+	// OK is returned on success.
+	OK Code = 0
+
 	// Canceled indicates that the operation was Canceled, typically by the caller.
 	Canceled Code = 1
 
@@ -25,7 +28,7 @@ const (
 	// NotFound indicates that some requested entity (for example, a file or directory) was not found.
 	NotFound Code = 5
 
-	// AlreadyExists indicates that client attempted to create an entity (for example, a file or directory) that already exists.
+	// AlreadyExists indicates that client attempted to create an entity (e.g, a file or directory) that already exists.
 	AlreadyExists Code = 6
 
 	// PermissionDenied indicates that the caller doesn't have permission to execute the specified operation.
@@ -62,50 +65,59 @@ const (
 	// Unauthenticated indicates that the request does not have valid authentication credentials for the operation.
 	Unauthenticated Code = 16
 
-	minCode = Canceled
+	minCode = OK
 	maxCode = Unauthenticated
 )
+
+var codeStrings = [...]string{
+	OK:                 "ok",
+	Canceled:           "canceled",
+	Unknown:            "unknown",
+	InvalidArgument:    "invalid_argument",
+	DeadlineExceeded:   "deadline_exceeded",
+	NotFound:           "not_found",
+	AlreadyExists:      "already_exists",
+	PermissionDenied:   "permission_denied",
+	ResourceExhausted:  "resource_exhausted",
+	FailedPrecondition: "failed_precondition",
+	Aborted:            "aborted",
+	OutOfRange:         "out_of_range",
+	Unimplemented:      "unimplemented",
+	Internal:           "internal",
+	Unavailable:        "unavailable",
+	DataLoss:           "data_loss",
+	Unauthenticated:    "unauthenticated",
+}
+
+var codeValues = map[string]Code{
+	"ok":                  OK,
+	"canceled":            Canceled,
+	"unknown":             Unknown,
+	"invalid_argument":    InvalidArgument,
+	"deadline_exceeded":   DeadlineExceeded,
+	"not_found":           NotFound,
+	"already_exists":      AlreadyExists,
+	"permission_denied":   PermissionDenied,
+	"resource_exhausted":  ResourceExhausted,
+	"failed_precondition": FailedPrecondition,
+	"aborted":             Aborted,
+	"out_of_range":        OutOfRange,
+	"unimplemented":       Unimplemented,
+	"internal":            Internal,
+	"unavailable":         Unavailable,
+	"data_loss":           DataLoss,
+	"unauthenticated":     Unauthenticated,
+}
 
 func (c *Code) String() string {
 	if c == nil {
 		return ""
 	}
 
-	switch *c {
-	case Canceled:
-		return "canceled"
-	case Unknown:
-		return "unknown"
-	case InvalidArgument:
-		return "invalid_argument"
-	case DeadlineExceeded:
-		return "deadline_exceeded"
-	case NotFound:
-		return "not_found"
-	case AlreadyExists:
-		return "already_exists"
-	case PermissionDenied:
-		return "permission_denied"
-	case ResourceExhausted:
-		return "resource_exhausted"
-	case FailedPrecondition:
-		return "failed_precondition"
-	case Aborted:
-		return "aborted"
-	case OutOfRange:
-		return "out_of_range"
-	case Unimplemented:
-		return "unimplemented"
-	case Internal:
-		return "internal"
-	case Unavailable:
-		return "unavailable"
-	case DataLoss:
-		return "data_loss"
-	case Unauthenticated:
-		return "unauthenticated"
+	if *c <= maxCode {
+		return codeStrings[*c]
 	}
-	return fmt.Sprintf("code_%d", c)
+	return fmt.Sprintf("code_%d", *c)
 }
 
 // MarshalText implements [encoding.TextMarshaler].
@@ -116,73 +128,27 @@ func (c *Code) MarshalText() ([]byte, error) {
 // UnmarshalText implements [encoding.TextUnmarshaler].
 func (c *Code) UnmarshalText(data []byte) error {
 	dataStr := string(data)
-	switch dataStr {
-	case "canceled":
-		*c = Canceled
-		return nil
-	case "unknown":
-		*c = Unknown
-		return nil
-	case "invalid_argument":
-		*c = InvalidArgument
-		return nil
-	case "deadline_exceeded":
-		*c = DeadlineExceeded
-		return nil
-	case "not_found":
-		*c = NotFound
-		return nil
-	case "already_exists":
-		*c = AlreadyExists
-		return nil
-	case "permission_denied":
-		*c = PermissionDenied
-		return nil
-	case "resource_exhausted":
-		*c = ResourceExhausted
-		return nil
-	case "failed_precondition":
-		*c = FailedPrecondition
-		return nil
-	case "aborted":
-		*c = Aborted
-		return nil
-	case "out_of_range":
-		*c = OutOfRange
-		return nil
-	case "unimplemented":
-		*c = Unimplemented
-		return nil
-	case "internal":
-		*c = Internal
-		return nil
-	case "unavailable":
-		*c = Unavailable
-		return nil
-	case "data_loss":
-		*c = DataLoss
-		return nil
-	case "unauthenticated":
-		*c = Unauthenticated
+	if code, ok := codeValues[dataStr]; ok {
+		*c = code
 		return nil
 	}
+
 	// Ensure that non-canonical codes round-trip through MarshalText and UnmarshalText.
-	if strings.HasPrefix(dataStr, "code_") {
-		dataStr = strings.TrimPrefix(dataStr, "code_")
-		_code, err := strconv.ParseInt(dataStr, 10 /* base */, 64 /* bitsize */)
-		if err == nil && (_code < int64(minCode) || _code > int64(maxCode)) {
-			*c = Code(_code)
+	if after, ok := strings.CutPrefix(dataStr, "code_"); ok {
+		code, err := strconv.ParseUint(after, 10 /* base */, 32 /* bitsize */)
+		if err == nil && code > uint64(maxCode) {
+			*c = Code(code)
 			return nil
 		}
 	}
-	return fmt.Errorf("invalid code %q", dataStr)
+
+	return ErrInvalidArgument
 }
 
-// CodeOf returns the error's status code if it is or wraps an [*Error] and [unknown] otherwise.
+// CodeOf returns the error's status code if it is or wraps an [*Error] and [Unknown] otherwise.
 func CodeOf(err error) Code {
 	var e *Error
-	ok := errors.As(err, &e)
-	if ok {
+	if ok := As(err, &e); ok {
 		return e.code
 	}
 	return Unknown

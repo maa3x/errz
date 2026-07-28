@@ -2,39 +2,47 @@ package errz
 
 import (
 	"fmt"
+	"strings"
 )
 
 type detail struct {
-	Key   string
 	Value any
+	Key   string
 }
 
 func (d detail) String() string {
 	return d.Key + ": " + fmt.Sprint(d.Value)
 }
 
+// Metadata is a collection of metadata details.
 type Metadata []detail
 
+// Add adds a key-value pair to the metadata.
 func (m Metadata) Add(key string, value any) Metadata {
 	m = append(m, detail{Key: key, Value: value})
 	return m
 }
 
+// String returns a string representation of the metadata.
 func (m Metadata) String() string {
 	if len(m) == 0 {
 		return ""
 	}
 
-	s := "{"
+	var builder strings.Builder
+	builder.WriteByte('{')
 	for i := range m {
 		if i > 0 {
-			s += ", "
+			builder.WriteString(", ")
 		}
-		s += m[i].String()
+		builder.WriteString(m[i].String())
 	}
-	return s + "} "
+	builder.WriteString("} ")
+
+	return builder.String()
 }
 
+// Get returns all values associated with the given key.
 func (m Metadata) Get(key string) []any {
 	if m == nil {
 		return nil
@@ -46,9 +54,11 @@ func (m Metadata) Get(key string) []any {
 			values = append(values, d.Value)
 		}
 	}
+
 	return values
 }
 
+// Has reports whether the metadata contains the given key.
 func (m Metadata) Has(key string) bool {
 	if m == nil {
 		return false
@@ -59,5 +69,6 @@ func (m Metadata) Has(key string) bool {
 			return true
 		}
 	}
+
 	return false
 }

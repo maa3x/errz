@@ -17,5 +17,6 @@ func (s stackframes) String() string {
 		loc := &location{File: s[i].File, Func: s[i].Function, Line: s[i].Line}
 		frames = append(frames, loc.String())
 	}
+
 	return strings.Join(frames, " ")
 }

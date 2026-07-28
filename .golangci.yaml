@@ -1,0 +1,180 @@
+version: '2'
+run:
+  modules-download-mode: readonly
+output:
+  sort-order:
+    - severity
+    - linter
+    - file
+linters:
+  default: all
+  disable:
+    - exhaustruct
+    - gochecknoinits
+    - gomodguard
+    - noinlineerr
+    - wsl
+    - wsl_v5
+  settings:
+    embeddedstructfieldcheck:
+      empty-line: false
+      forbid-mutex: true
+    decorder:
+      ignore-underscore-vars: true
+      dec-order:
+        - const
+        - var
+        - type
+        - func
+    errchkjson:
+      check-error-free-encoding: true
+      report-no-exported: true
+    errorlint:
+      asserts: false
+    exhaustive:
+      check:
+        - switch
+        - map
+      default-signifies-exhaustive: true
+    forbidigo:
+      forbid:
+        - pattern: ^print(ln)?$
+        - pattern: ^fmt\.Print.*$
+    goconst:
+      min-len: 3
+      min-occurrences: 4
+    gocritic:
+      enable-all: true
+    godoclint:
+      default: all
+      options:
+        max-len:
+          length: 120
+      disable:
+        - require-pkg-doc
+        - require-doc
+    godox:
+      keywords:
+        - FIXME
+        - TODO
+    govet:
+      enable-all: true
+    iface:
+      enable:
+        - identical # Identifies interfaces in the same package that have identical method sets.
+        - unused # Identifies interfaces that are not used anywhere in the same package where the interface is defined.
+        - opaque # Identifies functions that return interfaces, but the actual returned value is always a single concrete implementation.
+        - unexported # Identifies interfaces that are not exported but are used in exported functions or methods.
+    lll:
+      line-length: 120
+    misspell:
+      locale: US
+    mnd:
+      checks:
+        - argument
+        - case
+        - condition
+        - return
+      ignored-numbers:
+        - '0'
+        - '1'
+        - '2'
+        - '3'
+        - '4'
+        - '5'
+        - '10'
+        - '32'
+        - '100'
+        - '0o400'
+        - '0o600'
+        - '0o644'
+        - '0o755'
+        - '1e3'
+        - '1e4'
+        - '1e6'
+        - '1e9'
+      ignored-functions:
+        - (.*).IntRange
+        - helpers.Chance
+        - int
+        - int16
+        - int32
+        - int64
+        - int8
+        - make
+        - rune
+        - strings.SplitN
+        - uint
+        - uint16
+        - uint32
+        - uint64
+        - uint8
+    nestif:
+      min-complexity: 6
+    nilnil:
+      detect-opposite: true
+    nlreturn:
+      block-size: 8
+    nolintlint:
+      require-explanation: false
+      require-specific: true
+      allow-unused: false
+    revive:
+      enable-all-rules: true
+      rules:
+        - name: add-constant
+          disabled: true
+        - name: argument-limit
+          arguments:
+            - 5
+        - name: enforce-map-style
+          arguments:
+            - make
+        - name: enforce-repeated-arg-type-style
+          arguments:
+            - short
+        - name: exported
+          arguments:
+            - disable-stuttering-check
+        - name: function-result-limit
+          arguments:
+            - 3
+        - name: line-length-limit
+          disabled: true
+    spancheck:
+      checks:
+        - end
+        - record-error
+        - set-status
+    tagalign:
+      align: true
+      sort: true
+      strict: false
+    tagliatelle:
+      case:
+        rules:
+          json: snake
+  exclusions:
+    generated: lax
+    rules:
+      - linters: [errcheck]
+        text: Error return value of `err\.Wrap` is not checked
+      - linters: [gochecknoglobals]
+        text: DefaultFactory|codeValues|codeStrings
+      - linters: [revive]
+        text: Unhandled error in call to function strings.Builder.Write(String|Byte)
+      - linters: [revive]
+        text: 'unexported-return: exported func Factory returns unexported type \*errz.factory'
+      - linters: [varnamelen]
+        text: constant name 'OK' is too short for the scope of its usage
+    paths:
+      - (.+)_test\.go
+formatters:
+  enable:
+    - gofmt
+    - gofumpt
+    - goimports
+  settings:
+    gofumpt:
+      module-path: github.com/maa3x/errz
+      extra-rules: true

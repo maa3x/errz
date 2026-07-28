@@ -5,84 +5,49 @@ import (
 	"strings"
 )
 
-var DefaultFactory = Factory()
-
-func F(format string, args ...any) *Error {
-	return DefaultFactory.F(format, args...)
-}
-
-func E(in ...any) *Error {
-	return DefaultFactory.E(in...)
-}
-
-func If(err error, in ...any) *Error {
-	if err == nil {
-		return nil
-	}
-
-	return E(append([]any{err}, in...)...)
-}
-
 type factory struct {
+	OnError    func(*Error)
 	stacktrace bool
 	location   bool
 	timestamp  bool
-	OnError    func(*Error)
 }
 
-func Factory() *factory {
+// NewFactory creates a new error factory.
+func NewFactory() *factory {
 	return &factory{}
 }
 
-func (f *factory) StackTrace(v bool) *factory {
-	f.stacktrace = v
+// StackTrace enables or disables stack traces.
+func (f *factory) StackTrace(enable bool) *factory {
+	f.stacktrace = enable
 	return f
 }
 
-func (f *factory) Location(v bool) *factory {
-	f.location = v
+// Location enables or disables caller location.
+func (f *factory) Location(enable bool) *factory {
+	f.location = enable
 	return f
 }
 
-func (f *factory) Timestamp(v bool) *factory {
-	f.timestamp = v
+// Timestamp enables or disables timestamps.
+func (f *factory) Timestamp(enable bool) *factory {
+	f.timestamp = enable
 	return f
 }
 
-func (f *factory) E(in ...any) *Error {
-	err := &Error{}
-	for i := range in {
-		if in[i] == nil {
-			continue
-		}
-
-		switch v := in[i].(type) {
-		case Code:
-			err.code = v
-		case Error:
-			if !v.IsEmpty() {
-				err.errs = append(err.errs, &v)
-			}
-		case *Error:
-			if v != nil && !v.IsEmpty() {
-				err.errs = append(err.errs, v)
-			}
-		case error:
-			if v != nil {
-				err.errs = append(err.errs, v)
-			}
-		case string:
-			err.msg = strings.TrimSpace(v)
-		case fmt.Stringer:
-			if v != nil {
-				err.msg = strings.TrimSpace(v.String())
-			}
-		default:
-			if v != nil {
-				err.meta = append(err.meta, detail{Value: v})
-			}
-		}
+// E creates an error from the given arguments.
+func (f *factory) E(args ...any) *Error {
+	err := &Error{
+		loc:   nil,
+		ts:    nil,
+		msg:   "",
+		errs:  nil,
+		stack: nil,
+		meta:  nil,
+		code:  0,
 	}
+
+	f.applyArgs(err, args)
 
 	if err.IsEmpty() {
 		return nil
@@ -92,14 +57,55 @@ func (f *factory) E(in ...any) *Error {
 		err.WithTrace(2)
 	}
 	if f.location {
-		err.withLocation(5)
+		err.addLocation(5)
 	}
 	if f.timestamp {
 		err.WithTime()
 	}
+
 	return err
 }
 
+// F creates an error with a formatted message.
 func (f *factory) F(format string, args ...any) *Error {
-	return E(fmt.Errorf(format, args...))
+	return f.E(fmt.Errorf(format, args...)) //nolint:err113 // intended
+}
+
+func (f *factory) applyArgs(err *Error, args []any) {
+	for i := range args {
+		if args[i] == nil {
+			continue
+		}
+		f.applyArg(err, args[i])
+	}
+}
+
+//nolint:revive,cyclop // cognitive-complexity: switch logic is flat
+func (f *factory) applyArg(err *Error, val any) {
+	switch typedVal := val.(type) {
+	case Code:
+		err.code = typedVal
+	case Error:
+		if !typedVal.IsEmpty() {
+			err.errs = append(err.errs, &typedVal)
+		}
+	case *Error:
+		if typedVal != nil && !typedVal.IsEmpty() {
+			err.errs = append(err.errs, typedVal)
+		}
+	case error:
+		if typedVal != nil {
+			err.errs = append(err.errs, typedVal)
+		}
+	case string:
+		err.msg = strings.TrimSpace(typedVal)
+	case fmt.Stringer:
+		if typedVal != nil {
+			err.msg = strings.TrimSpace(typedVal.String())
+		}
+	default:
+		if typedVal != nil {
+			err.meta = append(err.meta, detail{Key: "", Value: typedVal})
+		}
+	}
 }
