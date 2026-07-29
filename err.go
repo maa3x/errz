@@ -3,6 +3,7 @@ package errz
 import (
 	"fmt"
 	"runtime"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -264,4 +265,34 @@ func (e *Error) addLocation(skip int) *Error {
 	e.loc = &location{File: frame.File, Func: frame.Function, Line: frame.Line}
 
 	return e
+}
+
+type location struct {
+	File string
+	Func string
+	Line int
+}
+
+func (l *location) String() string {
+	if l == nil {
+		return ""
+	}
+
+	return "[" + l.Func + " " + l.File + ":" + strconv.Itoa(l.Line) + "] "
+}
+
+type stackframes []runtime.Frame
+
+func (s stackframes) String() string {
+	if len(s) == 0 {
+		return ""
+	}
+
+	var frames []string
+	for i := range s {
+		loc := &location{File: s[i].File, Func: s[i].Function, Line: s[i].Line}
+		frames = append(frames, loc.String())
+	}
+
+	return strings.Join(frames, " ")
 }
