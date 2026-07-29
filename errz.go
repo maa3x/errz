@@ -3,12 +3,11 @@ package errz
 
 import "sync/atomic"
 
-var globalFactory atomic.Pointer[factory]
-
-func init() {
-	f := NewFactory()
-	globalFactory.Store(f)
-}
+var globalFactory = func() *atomic.Pointer[factory] {
+	var p atomic.Pointer[factory]
+	p.Store(NewFactory())
+	return &p
+}()
 
 // E creates an error from the given arguments.
 func E(args ...any) *Error {
