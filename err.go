@@ -150,30 +150,6 @@ func (e *Error) Wrap(err error) *Error {
 	return e
 }
 
-// Is reports whether the error matches target.
-func (e *Error) Is(target error) bool {
-	if e == nil {
-		return false
-	}
-	return Is(e, target)
-}
-
-// IsAny reports whether the error matches any of the targets.
-func (e *Error) IsAny(targets ...error) bool {
-	if e == nil {
-		return false
-	}
-	return Is(e, targets...)
-}
-
-// As finds the first error in the error's chain that matches target.
-func (e *Error) As(target any) bool {
-	if e == nil {
-		return false
-	}
-	return As(e, target)
-}
-
 // IsEmpty reports whether the error contains no information.
 func (e *Error) IsEmpty() bool {
 	return e == nil || (len(e.errs) == 0 && e.code == 0 && e.msg == "" && len(e.meta) == 0)
