@@ -14,17 +14,17 @@ func (d detail) String() string {
 	return d.Key + ": " + fmt.Sprint(d.Value)
 }
 
-// Metadata is a collection of metadata details.
-type Metadata []detail
+// metadata is a collection of metadata details.
+type metadata []detail
 
 // Add adds a key-value pair to the metadata.
-func (m Metadata) Add(key string, value any) Metadata {
+func (m metadata) Add(key string, value any) metadata {
 	m = append(m, detail{Key: key, Value: value})
 	return m
 }
 
 // String returns a string representation of the metadata.
-func (m Metadata) String() string {
+func (m metadata) String() string {
 	if len(m) == 0 {
 		return ""
 	}
@@ -43,7 +43,7 @@ func (m Metadata) String() string {
 }
 
 // Get returns all values associated with the given key.
-func (m Metadata) Get(key string) []any {
+func (m metadata) Get(key string) []any {
 	if m == nil {
 		return nil
 	}
@@ -59,7 +59,7 @@ func (m Metadata) Get(key string) []any {
 }
 
 // Has reports whether the metadata contains the given key.
-func (m Metadata) Has(key string) bool {
+func (m metadata) Has(key string) bool {
 	if m == nil {
 		return false
 	}

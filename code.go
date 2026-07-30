@@ -149,7 +149,7 @@ func (c *Code) UnmarshalText(data []byte) error {
 func CodeOf(err error) Code {
 	var e *Error
 	if ok := As(err, &e); ok {
-		return e.code
+		return e.Code
 	}
 	return Unknown
 }

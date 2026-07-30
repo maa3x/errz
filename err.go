@@ -10,13 +10,80 @@ import (
 
 // Error represents a structured error.
 type Error struct {
-	loc   *location
-	ts    *time.Time
-	msg   string
-	errs  []error
-	stack stackframes
-	meta  Metadata
-	code  Code
+	Code        Code
+	Message     string
+	Location    *location
+	Timestamp   *time.Time
+	Stackframes stackframes
+	Meta        metadata
+	errs        []error
+}
+
+// Unwrap returns the underlying errors.
+func (e *Error) Unwrap() []error {
+	if e == nil {
+		return nil
+	}
+	return e.errs
+}
+
+// Wrap appends an error to the error's chain.
+func (e *Error) Wrap(err error) *Error {
+	if e == nil {
+		return nil
+	} else if err == nil {
+		return e
+	}
+
+	e.errs = append(e.errs, err)
+	return e
+}
+
+// Error implements the error interface.
+func (e *Error) Error() string {
+	if e == nil {
+		return ""
+	}
+
+	return e.String()
+}
+
+// String returns a string representation of the error.
+func (e *Error) String() string {
+	if e == nil {
+		return ""
+	}
+
+	parts := make([]string, 0)
+	if e.Timestamp != nil {
+		parts = append(parts, e.Timestamp.Format(time.DateTime))
+	}
+	if e.Code != 0 {
+		parts = append(parts, fmt.Sprintf("[%d %s]", e.Code, e.Code.String()))
+	}
+	if e.Message != "" {
+		parts = append(parts, e.Message)
+	}
+	if e.Location != nil {
+		parts = append(parts, e.Location.String())
+	}
+	if len(e.Meta) > 0 {
+		parts = append(parts, e.Meta.String())
+	}
+	if len(e.Stackframes) > 0 {
+		parts = append(parts, e.Stackframes.String())
+	}
+
+	var builder strings.Builder
+	builder.WriteString(strings.Join(parts, " "))
+	e.appendErrs(&builder)
+
+	return builder.String()
+}
+
+// IsEmpty reports whether the error contains no information.
+func (e *Error) IsEmpty() bool {
+	return e == nil || (len(e.errs) == 0 && e.Code == 0 && e.Message == "" && len(e.Meta) == 0)
 }
 
 // With adds a metadata key-value pair to the error.
@@ -25,7 +92,7 @@ func (e *Error) With(key string, value any) *Error {
 		return nil
 	}
 
-	e.meta = e.meta.Add(key, value)
+	e.Meta = e.Meta.Add(key, value)
 	return e
 }
 
@@ -66,10 +133,10 @@ func (e *Error) WithTrace(skip int) *Error {
 
 	pcs := make([]uintptr, 32)
 	frames := runtime.CallersFrames(pcs[:runtime.Callers(3+skip, pcs)])
-	e.stack = make([]runtime.Frame, 0, 8)
+	e.Stackframes = make([]runtime.Frame, 0, 8)
 	for {
 		frame, more := frames.Next()
-		e.stack = append(e.stack, frame)
+		e.Stackframes = append(e.Stackframes, frame)
 		if !more {
 			break
 		}
@@ -84,131 +151,8 @@ func (e *Error) WithTime() *Error {
 		return nil
 	}
 
-	e.ts = new(time.Now())
+	e.Timestamp = new(time.Now())
 	return e
-}
-
-// String returns a string representation of the error.
-func (e *Error) String() string {
-	if e == nil {
-		return ""
-	}
-
-	parts := make([]string, 0)
-	if e.ts != nil {
-		parts = append(parts, e.ts.Format(time.DateTime))
-	}
-	if e.code != 0 {
-		parts = append(parts, fmt.Sprintf("[%d %s]", e.code, e.code.String()))
-	}
-	if e.msg != "" {
-		parts = append(parts, e.msg)
-	}
-	if e.loc != nil {
-		parts = append(parts, e.loc.String())
-	}
-	if len(e.meta) > 0 {
-		parts = append(parts, e.meta.String())
-	}
-	if len(e.stack) > 0 {
-		parts = append(parts, e.stack.String())
-	}
-
-	var builder strings.Builder
-	builder.WriteString(strings.Join(parts, " "))
-	e.appendErrs(&builder)
-
-	return builder.String()
-}
-
-// Error implements the error interface.
-func (e *Error) Error() string {
-	if e == nil {
-		return ""
-	}
-
-	return e.String()
-}
-
-// Unwrap returns the underlying errors.
-func (e *Error) Unwrap() []error {
-	if e == nil {
-		return nil
-	}
-	return e.errs
-}
-
-// Wrap appends an error to the error's chain.
-func (e *Error) Wrap(err error) *Error {
-	if e == nil {
-		return nil
-	} else if err == nil {
-		return e
-	}
-
-	e.errs = append(e.errs, err)
-	return e
-}
-
-// IsEmpty reports whether the error contains no information.
-func (e *Error) IsEmpty() bool {
-	return e == nil || (len(e.errs) == 0 && e.code == 0 && e.msg == "" && len(e.meta) == 0)
-}
-
-// Code returns the error's code.
-func (e *Error) Code() Code {
-	if e == nil {
-		return 0
-	}
-
-	return e.code
-}
-
-// Message returns the error's message.
-func (e *Error) Message() string {
-	if e == nil {
-		return ""
-	}
-
-	return e.msg
-}
-
-// Location returns the caller's location when the error was created.
-//
-//nolint:revive // unexported-return: location is an internal type
-func (e *Error) Location() *location {
-	if e == nil {
-		return nil
-	}
-
-	return e.loc
-}
-
-// StackTrace returns the error's stack trace.
-func (e *Error) StackTrace() []runtime.Frame {
-	if e == nil {
-		return nil
-	}
-
-	return e.stack
-}
-
-// Timestamp returns the time the error was created.
-func (e *Error) Timestamp() *time.Time {
-	if e == nil {
-		return nil
-	}
-
-	return e.ts
-}
-
-// Meta returns the error's metadata.
-func (e *Error) Meta() Metadata {
-	if e == nil {
-		return nil
-	}
-
-	return e.meta
 }
 
 func (e *Error) appendErrs(builder *strings.Builder) {
@@ -238,7 +182,7 @@ func (e *Error) addLocation(skip int) *Error {
 	var pcs [4]uintptr
 	frames := runtime.CallersFrames(pcs[:runtime.Callers(skip, pcs[:])])
 	frame, _ := frames.Next()
-	e.loc = &location{File: frame.File, Func: frame.Function, Line: frame.Line}
+	e.Location = &location{File: frame.File, Func: frame.Function, Line: frame.Line}
 
 	return e
 }

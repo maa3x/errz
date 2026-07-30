@@ -1,15 +1,13 @@
-package errz_test
+package errz
 
 import (
 	"strings"
 	"testing"
-
-	"github.com/maa3x/errz"
 )
 
 func TestMetadata(t *testing.T) {
 	t.Run("nil metadata", func(t *testing.T) {
-		var m errz.Metadata
+		var m metadata
 		if m.String() != "" {
 			t.Error("nil metadata should return empty string")
 		}
@@ -25,7 +23,7 @@ func TestMetadata(t *testing.T) {
 	})
 
 	t.Run("add and get", func(t *testing.T) {
-		m := make(errz.Metadata, 0)
+		m := make(metadata, 0)
 		m = m.Add("key1", "value1")
 		m = m.Add("key2", 42)
 		m = m.Add("key1", "value3")
@@ -55,7 +53,7 @@ func TestMetadata(t *testing.T) {
 	})
 
 	t.Run("string representation", func(t *testing.T) {
-		m := make(errz.Metadata, 0)
+		m := make(metadata, 0)
 		m = m.Add("key1", "value1")
 		m = m.Add("key2", 42)
 
